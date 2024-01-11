@@ -54,3 +54,22 @@ app.post('/blog_post_event', async (req, res) => {
 
   return res.status(400).send({ status: 'Bad Request' });
 });
+
+app.post('/archive_posts', async (req, res) => {
+  const sequelize = new Sequelize(POSTGRES_CONNECTION_STRING, {
+    dialect: 'postgres',
+    logging: false,
+  });
+
+  const { age_in_seconds } = req.body.input;
+
+ const [result,metadata] =  await sequelize.query(
+    "UPDATE blog_post SET is_published = false WHERE date < now() - interval ':age_in_seconds' second;",
+    { replacements: { age_in_seconds: age_in_seconds } }
+  );
+
+   return res.status(200).json({
+        count: metadata.rowCount,
+    });
+
+});
